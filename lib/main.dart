@@ -11,8 +11,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        primaryColor: Color(0xFFEFE9AF),
-        scaffoldBackgroundColor: Color.fromARGB(255, 228, 224, 193),
+        primaryColor: Color.fromARGB(255, 8, 8, 7),
+        scaffoldBackgroundColor: Color.fromARGB(255, 0, 0, 0),
         fontFamily: 'Raleway',
       ),
       home: MenuReceitas(),
