@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(
         primaryColor: Color.fromARGB(255, 8, 8, 7),
-        scaffoldBackgroundColor: Color.fromARGB(255, 0, 0, 0),
+        scaffoldBackgroundColor: Color.fromARGB(255, 255, 235, 124),
         fontFamily: 'Raleway',
       ),
       home: MenuReceitas(),
@@ -21,8 +21,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MenuReceitas extends StatelessWidget {
+class MenuReceitas extends StatefulWidget {
   const MenuReceitas({super.key});
+
+  @override
+  _MenuReceitasState createState() => _MenuReceitasState();
+}
+
+class _MenuReceitasState extends State<MenuReceitas> {
+  List<Map<String, String>> favoritos = [];
 
   static const List<Map<String, String>> receitas = [
     {
@@ -57,6 +64,16 @@ class MenuReceitas extends StatelessWidget {
     },
   ];
 
+  void _toggleFavorito(Map<String, String> receita) {
+    setState(() {
+      if (favoritos.contains(receita)) {
+        favoritos.remove(receita);
+      } else {
+        favoritos.add(receita);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,12 +88,27 @@ class MenuReceitas extends StatelessWidget {
         ),
         backgroundColor: Color.fromARGB(255, 228, 224, 193),
         centerTitle: true,
-      
+        actions: [
+          IconButton(
+            icon: Icon(Icons.favorite),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FavoritosPage(favoritos: favoritos),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView.builder(
         padding: EdgeInsets.all(20.0),
         itemCount: receitas.length,
         itemBuilder: (context, index) {
+          final receita = receitas[index];
+          final isFavorito = favoritos.contains(receita);
+          
           return Card(
             elevation: 8.0,
             shape: RoundedRectangleBorder(
@@ -91,7 +123,7 @@ class MenuReceitas extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     image: DecorationImage(
-                      image: AssetImage(receitas[index]['imagem']!),
+                      image: AssetImage(receita['imagem']!),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -103,7 +135,7 @@ class MenuReceitas extends StatelessWidget {
                     children: <Widget>[
                       SizedBox(height: 20),
                       Text(
-                        receitas[index]['nome']!,
+                        receita['nome']!,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -111,7 +143,7 @@ class MenuReceitas extends StatelessWidget {
                       ),
                       SizedBox(height: 10),
                       Text(
-                        receitas[index]['descricao']!,
+                        receita['descricao']!,
                         textAlign: TextAlign.left,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
@@ -123,14 +155,14 @@ class MenuReceitas extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => DetalhesReceita(
-                                receita: receitas[index],
+                                receita: receita,
                               ),
                             ),
                           );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color.fromARGB(255, 72, 41, 30),
-                          padding: EdgeInsets.symmetric( horizontal: 20, vertical: 10),
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
@@ -143,6 +175,13 @@ class MenuReceitas extends StatelessWidget {
                             color: Colors.white,
                           ),
                         ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          isFavorito ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorito ? Colors.red : Colors.grey,
+                        ),
+                        onPressed: () => _toggleFavorito(receita),
                       ),
                     ],
                   ),
@@ -165,14 +204,14 @@ class DetalhesReceita extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(receita['nome']!,
+        title: Text(
+          receita['nome']!,
           style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
         ),
-        
         backgroundColor: Color.fromARGB(255, 252, 248, 215),
         centerTitle: true,
       ),
@@ -200,8 +239,10 @@ class DetalhesReceita extends StatelessWidget {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
-              Text(receita['detalhes']!,
-              style: TextStyle(fontSize: 17),),
+              Text(
+                receita['detalhes']!,
+                style: TextStyle(fontSize: 17),
+              ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
@@ -225,7 +266,50 @@ class DetalhesReceita extends StatelessWidget {
               ),
             ],
           ),
-        ),        
+        ),
+      ),
+    );
+  }
+}
+
+class FavoritosPage extends StatelessWidget {
+  final List<Map<String, String>> favoritos;
+
+  const FavoritosPage({super.key, required this.favoritos});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Favoritos',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 32,
+          ),
+        ),
+        backgroundColor: Color.fromARGB(255, 228, 224, 193),
+        centerTitle: true,
+      ),
+      body: ListView.builder(
+        itemCount: favoritos.length,
+        itemBuilder: (context, index) {
+          final receita = favoritos[index];
+          return ListTile(
+            title: Text(receita['nome']!),
+            subtitle: Text(receita['descricao']!),
+            leading: Image.asset(receita['imagem']!, width: 50, height: 50, fit: BoxFit.cover),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetalhesReceita(receita: receita),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
